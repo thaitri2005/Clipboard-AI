@@ -227,29 +227,70 @@ def main():
                         key_names.append(f"'{k.char}'")
                     elif hasattr(k, 'name'):
                         key_names.append(k.name)
+                    elif hasattr(k, 'vk'):  # Virtual key code
+                        key_names.append(f"vk_{k.vk}")
                     else:
                         key_names.append(str(k).replace('Key.', ''))
                 if len(key_names) > 0:
                     print(f"🔍 [DEBUG] Keys currently held: {' + '.join(key_names)}")
             
-            # Check for Ctrl+Shift+G (check both uppercase and lowercase G)
+            # Check for Ctrl+Shift modifiers
             ctrl_pressed = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys or Key.ctrl in current_keys
             shift_pressed = Key.shift in current_keys or Key.shift_r in current_keys or Key.shift_l in current_keys
             
-            # Check if 'G' is pressed (could be uppercase or lowercase)
+            # Check for G key using virtual key code (G = 71 or 0x47)
+            # Check for Q key using virtual key code (Q = 81 or 0x51)
             g_pressed = False
             q_pressed = False
             
+            # Method 1: Check character (works on some systems)
             if hasattr(key, 'char') and key.char:
-                g_pressed = key.char.lower() == 'g'
-                q_pressed = key.char.lower() == 'q'
+                char_lower = key.char.lower()
+                if char_lower == 'g':
+                    g_pressed = True
+                if char_lower == 'q':
+                    q_pressed = True
             
-            # Also check if G/Q key is in current_keys
+            # Method 2: Check virtual key code (more reliable for hotkeys)
+            if hasattr(key, 'vk'):
+                # G key = virtual key 71 (0x47)
+                # Q key = virtual key 81 (0x51)
+                if key.vk == 71 or key.vk == 0x47:
+                    g_pressed = True
+                    if VERBOSE:
+                        print(f"🔍 [DEBUG] G key detected via virtual key code!")
+                if key.vk == 81 or key.vk == 0x51:
+                    q_pressed = True
+                    if VERBOSE:
+                        print(f"🔍 [DEBUG] Q key detected via virtual key code!")
+            
+            # Method 3: Check name attribute
+            if hasattr(key, 'name'):
+                if key.name.lower() == 'g':
+                    g_pressed = True
+                if key.name.lower() == 'q':
+                    q_pressed = True
+            
+            # Also scan through all currently held keys
             for k in current_keys:
-                if hasattr(k, 'char') and k.char:
-                    if k.char.lower() == 'g':
+                # Check by virtual key code
+                if hasattr(k, 'vk'):
+                    if k.vk == 71 or k.vk == 0x47:
                         g_pressed = True
-                    if k.char.lower() == 'q':
+                    if k.vk == 81 or k.vk == 0x51:
+                        q_pressed = True
+                # Check by character
+                if hasattr(k, 'char') and k.char:
+                    char_lower = k.char.lower()
+                    if char_lower == 'g':
+                        g_pressed = True
+                    if char_lower == 'q':
+                        q_pressed = True
+                # Check by name
+                if hasattr(k, 'name'):
+                    if k.name.lower() == 'g':
+                        g_pressed = True
+                    if k.name.lower() == 'q':
                         q_pressed = True
             
             if VERBOSE and (g_pressed or q_pressed):
