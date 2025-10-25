@@ -2,67 +2,51 @@
 
 Send clipboard content to your local Ollama instance with a hotkey and get AI-processed results back!
 
+**Optimized for SQL tasks with a lightweight model!**
+
 ## 🎯 Features
 
 - **Hotkey Activation**: Press `Ctrl+Shift+G` to process clipboard content
-- **Local AI Processing**: Uses your local Ollama instance
+- **Local AI Processing**: Uses your local Ollama CLI
+- **Lightweight**: Configured with phi3:mini (~2.3GB, fast, SQL-capable)
 - **Seamless Workflow**: Copy → Process → Paste
 - **Privacy First**: Everything runs locally on your machine
+- **SQL Optimized**: Great for SQL queries, explanations, and optimization
 
-## 📋 Prerequisites
+## 🚀 Quick Start (Automated)
 
-### 1. Install Ollama
+Run the automated setup script:
 
-Download and install Ollama from: https://ollama.ai/download
-
-After installation, verify it's working:
 ```powershell
-ollama --version
+.\setup.ps1
 ```
 
-### 2. Pull an AI Model
+That's it! The script will:
+1. Install Ollama CLI
+2. Download phi3:mini model (~2.3GB)
+3. Install Python dependencies
+4. Test everything
 
-Download a model (e.g., llama3.2):
-```powershell
-ollama pull llama3.2
-```
+## � Manual Installation
 
-Available models you can try:
-- `llama3.2` - Fast and capable (recommended)
-- `llama3.2:1b` - Smaller, faster
-- `mistral` - Good alternative
-- `codellama` - Specialized for code
-- `phi3` - Compact and efficient
-
-### 3. Install Python
-
-Make sure Python 3.7+ is installed:
-```powershell
-python --version
-```
-
-If not installed, download from: https://www.python.org/downloads/
-
-## 🚀 Installation
-
-1. Clone this repository:
-```powershell
-git clone <your-repo-url>
-cd Local-AI-Clipboard
-```
-
-2. Install Python dependencies:
-```powershell
-pip install -r requirements.txt
-```
+If you prefer manual setup, see [INSTALL.md](INSTALL.md) or [SETUP.md](SETUP.md)
 
 ## ⚙️ Configuration
 
-Edit `clipboard_ai.py` to change the Ollama model:
+Edit `config.py` to customize:
 
 ```python
-OLLAMA_MODEL = "llama3.2"  # Change to your preferred model
+MODEL = "phi3:mini"  # Lightweight, SQL-capable model
+SYSTEM_PROMPT = ""   # Add custom instructions like "Explain this SQL:"
+TIMEOUT = 120        # Response timeout in seconds
+VERBOSE = True       # Show detailed output
 ```
+
+### Recommended Models for SQL:
+- **phi3:mini** (2.3GB) - ⭐ Default, fast, lightweight, good SQL
+- **qwen2.5-coder:1.5b** (1GB) - Smallest, very fast
+- **codellama:7b** (3.8GB) - Better for complex SQL
+- **sqlcoder:7b** (7GB) - SQL specialist (requires more resources)
 
 ## 🎮 Usage
 
@@ -81,11 +65,17 @@ python clipboard_ai.py
 
 ## 💡 Example Use Cases
 
-- **Writing Enhancement**: Copy text → Process → Get improved version
+### SQL-Focused Tasks:
+- **Query Explanation**: Copy SQL → Process → Get plain English explanation
+- **Query Optimization**: Copy slow query → Process → Get optimized version
+- **Query Generation**: Copy requirements → Process → Get SQL query
+- **Error Debugging**: Copy error message → Process → Get solution
+- **Schema Design**: Copy requirements → Process → Get table schemas
+
+### General Tasks:
 - **Code Explanation**: Copy code → Process → Get explanation
-- **Translation**: Copy text → Process → Get translation
+- **Text Enhancement**: Copy draft → Process → Get improved version
 - **Summarization**: Copy article → Process → Get summary
-- **Question Answering**: Copy question → Process → Get answer
 
 ## 🔧 Customization
 
