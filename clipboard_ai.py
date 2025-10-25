@@ -6,6 +6,7 @@ Hotkey: Ctrl+Shift+G
 import pyperclip
 import subprocess
 import json
+import re
 from pynput import keyboard
 from pynput.keyboard import Key, KeyCode
 import sys
@@ -76,18 +77,24 @@ class ClipboardAI:
                     print(f"🎯 Using system prompt: {SYSTEM_PROMPT[:50]}{'...' if len(SYSTEM_PROMPT) > 50 else ''}\n")
             
             # Construct the ollama command
+            # Disable streaming and use --nowordwrap for clean output
             if VERBOSE:
-                print(f"🔍 [DEBUG] Executing: {OLLAMA_COMMAND} run {OLLAMA_MODEL}")
+                print(f"🔍 [DEBUG] Executing: {OLLAMA_COMMAND} run {OLLAMA_MODEL} --nowordwrap")
                 print(f"⏳ Waiting for Ollama response (timeout: {TIMEOUT}s)...\n")
             
+            # Set environment to disable streaming animations
+            env = subprocess.os.environ.copy()
+            env['TERM'] = 'dumb'  # Disable ANSI escape codes
+            
             process = subprocess.Popen(
-                [OLLAMA_COMMAND, "run", OLLAMA_MODEL],
+                [OLLAMA_COMMAND, "run", OLLAMA_MODEL, "--nowordwrap"],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 encoding='utf-8',
-                errors='replace'  # Replace undecodable characters instead of crashing
+                errors='replace',  # Replace undecodable characters instead of crashing
+                env=env
             )
             
             # Send input and get output with timeout
@@ -114,7 +121,15 @@ class ClipboardAI:
                 print(f"   4. Try restarting Ollama service")
                 return None
             
+            # Strip ANSI escape codes from response
             response = stdout.strip()
+            
+            # Remove ANSI escape sequences (like ←[?25l, ←[1G, etc.)
+            # Pattern matches ANSI escape codes
+            ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+            response = ansi_escape.sub('', response)
+            response = response.strip()
+            
             if response:
                 print(f"✅ Received response from Ollama!")
                 if VERBOSE:
