@@ -13,32 +13,37 @@
 
 ## Configure the App
 
-### 1. Install Gemini Package
+### 1. Install Required Packages
 
 ```powershell
-pip install google-generativeai
+pip install google-generativeai python-dotenv
 ```
 
-### 2. Add API Key to Config
+Or install all dependencies:
 
-Edit `config.py`:
-
-```python
-# ============================================================
-# GEMINI API CONFIGURATION (Ctrl+Shift+H)
-# ============================================================
-
-# Paste your API key here:
-GEMINI_API_KEY = "AIzaSyD...your-key-here..."
-
-# Choose your model (recommended: gemini-2.0-flash-exp)
-GEMINI_MODEL = "gemini-2.0-flash-exp"
-
-# Optional: Different prompt for Gemini
-GEMINI_SYSTEM_PROMPT = ""  # Leave empty to use same as Ollama
+```powershell
+pip install -r requirements.txt
 ```
 
-### 3. Restart the App
+### 2. Create .env File
+
+Copy the example file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### 3. Add Your API Key to .env
+
+Edit the `.env` file and add your actual API key:
+
+```
+GEMINI_API_KEY=AIzaSyD...your-actual-key-here...
+```
+
+**✅ SECURE:** The `.env` file is gitignored and won't be committed!
+
+### 4. Restart the App
 
 ```powershell
 python clipboard_ai.py
@@ -109,14 +114,23 @@ Check your usage: https://makersuite.google.com/
 ## Troubleshooting
 
 ### "Gemini API not available"
+
 ```powershell
-pip install google-generativeai
+pip install google-generativeai python-dotenv
+```
+
+Or:
+
+```powershell
+pip install -r requirements.txt
 ```
 
 ### "API key not configured"
-- Set `GEMINI_API_KEY` in `config.py`
+
+- Set `GEMINI_API_KEY` in `.env` file (not `config.py`!)
 - Make sure the key is valid (starts with `AIza`)
-- No extra spaces or quotes issues
+- No extra spaces or quote issues
+- Example: `GEMINI_API_KEY=AIzaSyD1234567890...`
 
 ### "API quota exceeded"
 - You've hit the free tier limit
@@ -128,11 +142,19 @@ pip install google-generativeai
 - Make sure you copied the entire key
 - Check for any typos
 
-## Example
+## Example Configuration
+
+Your `.env` file should look like:
+
+```bash
+# Gemini API Configuration
+GEMINI_API_KEY=AIzaSyDcX1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o
+```
+
+You can also customize settings in `config.py`:
 
 ```python
 # config.py
-GEMINI_API_KEY = "AIzaSyDcX1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o"
 GEMINI_MODEL = "gemini-2.0-flash-exp"
 GEMINI_SYSTEM_PROMPT = "You are an SQL expert. Be concise."
 ```

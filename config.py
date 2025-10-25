@@ -1,4 +1,9 @@
 # Configuration file for Local AI Clipboard
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # ============================================================
 # OLLAMA CONFIGURATION (Ctrl+Shift+G)
@@ -31,8 +36,9 @@ TIMEOUT = 300  # 5 minutes (increased from 120s)
 # ============================================================
 
 # Get your API key from: https://makersuite.google.com/app/apikey
-# Set this to your Gemini API key or leave empty to disable Gemini mode
-GEMINI_API_KEY = ""
+# Set this in your .env file: GEMINI_API_KEY=your-key-here
+# The .env file is gitignored for security
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # Gemini model to use
 # Available models:
