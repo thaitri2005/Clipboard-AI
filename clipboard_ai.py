@@ -158,21 +158,52 @@ class ClipboardAI:
             return None
 
     def set_clipboard_content(self, content):
-        """Set clipboard content"""
-        try:
-            if VERBOSE:
-                print(f"🔍 [DEBUG] Writing {len(content)} characters to clipboard...")
-            pyperclip.copy(content)
-            print("✅ Response copied to clipboard! Press Ctrl+V to paste.\n")
-            if VERBOSE:
-                print("🔍 [DEBUG] Clipboard write successful!")
-            return True
-        except Exception as e:
-            print(f"❌ Error writing to clipboard: {e}")
-            import traceback
-            if VERBOSE:
-                traceback.print_exc()
-            return False
+        """Set clipboard content with retry logic"""
+        import time
+        max_retries = 5
+        retry_delay = 0.5  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                if VERBOSE and attempt > 0:
+                    print(f"🔍 [DEBUG] Retry attempt {attempt + 1}/{max_retries}...")
+                
+                if VERBOSE:
+                    print(f"🔍 [DEBUG] Writing {len(content)} characters to clipboard...")
+                
+                # Try to copy to clipboard
+                pyperclip.copy(content)
+                
+                # Verify it was copied correctly
+                time.sleep(0.1)  # Small delay to ensure clipboard is updated
+                copied = pyperclip.paste()
+                
+                if copied == content:
+                    print("✅ Response copied to clipboard! Press Ctrl+V to paste.\n")
+                    if VERBOSE:
+                        print("🔍 [DEBUG] Clipboard write verified successfully!")
+                    return True
+                else:
+                    if VERBOSE:
+                        print(f"⚠️  [DEBUG] Clipboard verification failed, retrying...")
+                    raise Exception("Clipboard verification failed")
+                    
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    if VERBOSE:
+                        print(f"⚠️  [DEBUG] Clipboard access failed: {e}")
+                        print(f"⏳ Waiting {retry_delay}s before retry...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 1.5  # Exponential backoff
+                else:
+                    print(f"❌ Error writing to clipboard after {max_retries} attempts: {e}")
+                    print(f"💡 TIP: Close other clipboard managers or wait a moment and try again")
+                    if VERBOSE:
+                        import traceback
+                        traceback.print_exc()
+                    return False
+        
+        return False
 
     def process_clipboard(self):
         """Main processing function"""
@@ -210,6 +241,11 @@ class ClipboardAI:
             # Put response back in clipboard
             if VERBOSE:
                 print("🔍 [DEBUG] Step 3/3: Writing to clipboard...")
+            
+            # Small delay to ensure clipboard is not locked by previous operation
+            import time
+            time.sleep(0.2)
+            
             self.set_clipboard_content(response)
             
             elapsed = time.time() - start_time
