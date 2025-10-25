@@ -85,7 +85,9 @@ class ClipboardAI:
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
+                encoding='utf-8',
+                errors='replace'  # Replace undecodable characters instead of crashing
             )
             
             # Send input and get output with timeout
@@ -104,11 +106,12 @@ class ClipboardAI:
             
             if process.returncode != 0:
                 print(f"❌ Ollama error (exit code {process.returncode})")
-                print(f"   Error details: {stderr}")
+                print(f"   Error details: {stderr[:500]}")  # Limit error message length
                 print(f"\n💡 Troubleshooting:")
                 print(f"   1. Check if Ollama is running: ollama list")
                 print(f"   2. Check if model exists: ollama pull {OLLAMA_MODEL}")
                 print(f"   3. Test manually: echo 'test' | ollama run {OLLAMA_MODEL}")
+                print(f"   4. Try restarting Ollama service")
                 return None
             
             response = stdout.strip()

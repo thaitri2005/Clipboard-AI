@@ -18,7 +18,9 @@ MODEL = "phi3:mini"
 SYSTEM_PROMPT = ""
 
 # Timeout for Ollama response (seconds)
-TIMEOUT = 120
+# Increase this if you get timeout errors
+# First run might be slow as model loads into memory
+TIMEOUT = 300  # 5 minutes (increased from 120s)
 
 # Show verbose output in terminal
 VERBOSE = True

@@ -36,7 +36,11 @@ echo  Starting Local AI Clipboard...
 echo ========================================
 echo.
 echo Press Ctrl+Shift+G to process clipboard
-echo Press Ctrl+C to exit
+echo Press Ctrl+Shift+Q to exit
+echo.
+echo NOTE: First request might be slow (10-30s)
+echo       as Ollama loads the model into memory.
+echo       Subsequent requests will be faster!
 echo.
 
 python clipboard_ai.py
