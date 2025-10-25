@@ -27,18 +27,19 @@ class ClipboardAI:
     def __init__(self):
         self.processing = False
         self.hotkey_pressed_count = 0
+        self.should_exit = False
         print("\n" + "="*60)
         print("🚀 LOCAL AI CLIPBOARD STARTED SUCCESSFULLY!")
         print("="*60)
         print(f"📋 Using Ollama model: {OLLAMA_MODEL}")
         print(f"⌨️  Hotkey: Ctrl+Shift+G")
-        print(f"🛑 Stop: Ctrl+C in this terminal")
+        print(f"🛑 Exit: Press Ctrl+Shift+Q OR close this window")
         print(f"🔍 Verbose mode: {VERBOSE}")
         if SYSTEM_PROMPT:
             print(f"💬 System prompt: {SYSTEM_PROMPT[:50]}...")
         print("="*60)
         print("\n✅ Ready! Listening for keyboard input...")
-        print("� TIP: Try pressing Ctrl+Shift+G now to test!\n")
+        print("💡 TIP: Try pressing Ctrl+Shift+G now to test!\n")
 
     def get_clipboard_content(self):
         """Get current clipboard content"""
@@ -219,27 +220,53 @@ def main():
             current_keys.add(key)
             
             # Debug: Show what keys are pressed if in verbose mode
-            if VERBOSE and len(current_keys) > 1:
+            if VERBOSE:
                 key_names = []
                 for k in current_keys:
                     if hasattr(k, 'char') and k.char:
-                        key_names.append(k.char)
+                        key_names.append(f"'{k.char}'")
+                    elif hasattr(k, 'name'):
+                        key_names.append(k.name)
                     else:
                         key_names.append(str(k).replace('Key.', ''))
-                if len(key_names) > 1:  # Only show combinations
-                    print(f"🔍 [DEBUG] Keys pressed: {' + '.join(key_names)}")
+                if len(key_names) > 0:
+                    print(f"🔍 [DEBUG] Keys currently held: {' + '.join(key_names)}")
             
-            # Check for Ctrl+Shift+G
-            ctrl_pressed = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys
-            shift_pressed = Key.shift in current_keys or Key.shift_r in current_keys
+            # Check for Ctrl+Shift+G (check both uppercase and lowercase G)
+            ctrl_pressed = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys or Key.ctrl in current_keys
+            shift_pressed = Key.shift in current_keys or Key.shift_r in current_keys or Key.shift_l in current_keys
             
-            # Check if 'G' is pressed
-            if hasattr(key, 'char') and key.char and key.char.lower() == 'g':
-                if ctrl_pressed and shift_pressed:
-                    print("🎯 HOTKEY DETECTED: Ctrl+Shift+G pressed!")
-                    app.process_clipboard()
-                elif VERBOSE:
-                    print(f"🔍 [DEBUG] 'G' pressed but missing: Ctrl={ctrl_pressed}, Shift={shift_pressed}")
+            # Check if 'G' is pressed (could be uppercase or lowercase)
+            g_pressed = False
+            q_pressed = False
+            
+            if hasattr(key, 'char') and key.char:
+                g_pressed = key.char.lower() == 'g'
+                q_pressed = key.char.lower() == 'q'
+            
+            # Also check if G/Q key is in current_keys
+            for k in current_keys:
+                if hasattr(k, 'char') and k.char:
+                    if k.char.lower() == 'g':
+                        g_pressed = True
+                    if k.char.lower() == 'q':
+                        q_pressed = True
+            
+            if VERBOSE and (g_pressed or q_pressed):
+                print(f"🔍 [DEBUG] Key detected: G={g_pressed}, Q={q_pressed}, Ctrl={ctrl_pressed}, Shift={shift_pressed}")
+            
+            # Check for Ctrl+Shift+Q to exit
+            if q_pressed and ctrl_pressed and shift_pressed:
+                print("\n👋 Exit hotkey (Ctrl+Shift+Q) detected!")
+                print("Shutting down...")
+                app.should_exit = True
+                import os
+                os._exit(0)
+            
+            # Check for Ctrl+Shift+G to process
+            if g_pressed and ctrl_pressed and shift_pressed:
+                print("\n🎯 HOTKEY DETECTED: Ctrl+Shift+G pressed!")
+                app.process_clipboard()
                     
         except AttributeError:
             pass
@@ -263,8 +290,9 @@ def main():
     # Start listening for keyboard events
     print("🎧 Keyboard listener started...")
     if VERBOSE:
-        print("🔍 [DEBUG] Listening for Ctrl+Shift+G combination...")
-        print("🔍 [DEBUG] Try pressing keys to see them detected\n")
+        print("🔍 [DEBUG] Listening for Ctrl+Shift+G (process) and Ctrl+Shift+Q (exit)")
+        print("🔍 [DEBUG] Press keys to see them detected")
+        print("🔍 [DEBUG] Or just close the terminal window to exit\n")
     
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         try:
@@ -272,6 +300,9 @@ def main():
         except KeyboardInterrupt:
             print("\n👋 Exiting Local AI Clipboard...")
             sys.exit(0)
+        except Exception as e:
+            print(f"❌ Listener error: {e}")
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()
