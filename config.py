@@ -1,5 +1,9 @@
 # Configuration file for Local AI Clipboard
 
+# ============================================================
+# OLLAMA CONFIGURATION (Ctrl+Shift+G)
+# ============================================================
+
 # Ollama model to use
 # Recommended lightweight models for SQL:
 # - "sqlcoder:7b" - Specialized for SQL (7GB)
@@ -21,6 +25,29 @@ SYSTEM_PROMPT = ""
 # Increase this if you get timeout errors
 # First run might be slow as model loads into memory
 TIMEOUT = 300  # 5 minutes (increased from 120s)
+
+# ============================================================
+# GEMINI API CONFIGURATION (Ctrl+Shift+H)
+# ============================================================
+
+# Get your API key from: https://makersuite.google.com/app/apikey
+# Set this to your Gemini API key or leave empty to disable Gemini mode
+GEMINI_API_KEY = ""
+
+# Gemini model to use
+# Available models:
+# - "gemini-2.0-flash-exp" - Latest and fastest ⭐ RECOMMENDED
+# - "gemini-1.5-flash" - Fast and efficient
+# - "gemini-1.5-pro" - More capable, slower
+GEMINI_MODEL = "gemini-2.0-flash-exp"
+
+# Optional: System prompt for Gemini (can be different from Ollama)
+# Leave empty to use the same SYSTEM_PROMPT as Ollama
+GEMINI_SYSTEM_PROMPT = ""
+
+# ============================================================
+# GENERAL SETTINGS
+# ============================================================
 
 # Show verbose output in terminal
 VERBOSE = True

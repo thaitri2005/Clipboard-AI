@@ -1,16 +1,19 @@
 # Local AI Clipboard
 
-Send clipboard content to your local Ollama instance with a hotkey and get AI-processed results back!
+Send clipboard content to your local Ollama instance OR Google Gemini API with hotkeys and get AI-processed results back!
 
 **Optimized for SQL tasks with a lightweight model!**
 
 ## 🎯 Features
 
-- **Hotkey Activation**: Press `Ctrl+Shift+G` to process clipboard content
-- **Local AI Processing**: Uses your local Ollama CLI
+- **Dual AI Modes**: 
+  - **Ctrl+Shift+G** → Ollama (local, private, free)
+  - **Ctrl+Shift+H** → Gemini API (cloud, fast, free tier)
+- **Hotkey Activation**: Process clipboard with a simple key combo
+- **Local AI Processing**: Uses your local Ollama CLI (privacy first!)
+- **Cloud AI Option**: Optional Gemini API for faster responses
 - **Lightweight**: Configured with phi3:mini (~2.3GB, fast, SQL-capable)
 - **Seamless Workflow**: Copy → Process → Paste
-- **Privacy First**: Everything runs locally on your machine
 - **SQL Optimized**: Great for SQL queries, explanations, and optimization
 
 ## 🚀 Quick Start (Automated)
@@ -57,7 +60,9 @@ python clipboard_ai.py
 
 2. Copy any text to your clipboard (Ctrl+C)
 
-3. Press `Ctrl+Shift+G` to process it with AI
+3. Choose your AI:
+   - Press `Ctrl+Shift+G` to process with **Ollama** (local)
+   - Press `Ctrl+Shift+H` to process with **Gemini** (cloud) 
 
 4. Wait for processing (you'll see progress in the terminal)
 
