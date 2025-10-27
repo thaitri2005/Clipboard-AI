@@ -16,7 +16,6 @@ import time
 try:
     from config import MODEL, SYSTEM_PROMPT, TIMEOUT, VERBOSE
     from config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_SYSTEM_PROMPT
-    from config import ENABLE_HISTORY, MAX_HISTORY
     OLLAMA_MODEL = MODEL
 except ImportError:
     OLLAMA_MODEL = "llama3.2"
@@ -26,8 +25,6 @@ except ImportError:
     GEMINI_API_KEY = ""
     GEMINI_MODEL = "gemini-2.0-flash-exp"
     GEMINI_SYSTEM_PROMPT = ""
-    ENABLE_HISTORY = False
-    MAX_HISTORY = 0
 
 OLLAMA_COMMAND = "ollama"
 
@@ -49,8 +46,6 @@ class ClipboardAI:
         self.hotkey_pressed_count = 0
         self.gemini_pressed_count = 0
         self.should_exit = False
-        # Conversation history: list of {"role": "user"/"assistant", "content": "..."}
-        self.conversation_history = []
         print("\n" + "="*60)
         print("🚀 LOCAL AI CLIPBOARD STARTED SUCCESSFULLY!")
         print("="*60)
@@ -64,55 +59,13 @@ class ClipboardAI:
             print(f"⚠️  Gemini API: Not configured")
             print(f"💡 Set GEMINI_API_KEY in config.py to enable Ctrl+Shift+H")
         
-        if ENABLE_HISTORY:
-            print(f"📚 Conversation history: Enabled (max {MAX_HISTORY} exchanges)")
-            print(f"⌨️  Ctrl+Shift+R - Reset conversation history")
-        else:
-            print(f"📚 Conversation history: Disabled")
-        
         print(f"🛑 Exit: Press Ctrl+Shift+Q OR close this window")
         print(f"🔍 Verbose mode: {VERBOSE}")
         if SYSTEM_PROMPT:
             print(f"💬 System prompt: {SYSTEM_PROMPT[:50]}...")
         print("="*60)
         print("\n✅ Ready! Listening for keyboard input...")
-        print("💡 TIP: Try pressing Ctrl+Shift+G (Ollama) or Ctrl+Shift+H (Gemini)!")
-        if ENABLE_HISTORY:
-            print("💡 TIP: Press Ctrl+Shift+R to reset conversation history\n")
-        else:
-            print()
-    
-    def add_to_history(self, role, content):
-        """Add a message to conversation history"""
-        if not ENABLE_HISTORY or MAX_HISTORY <= 0:
-            return
-        
-        self.conversation_history.append({
-            "role": role,
-            "content": content
-        })
-        
-        # Keep only the last MAX_HISTORY exchanges (user + assistant pairs)
-        # Each exchange = 2 messages, so keep last MAX_HISTORY * 2
-        max_messages = MAX_HISTORY * 2
-        if len(self.conversation_history) > max_messages:
-            self.conversation_history = self.conversation_history[-max_messages:]
-        
-        if VERBOSE:
-            exchanges = len(self.conversation_history) // 2
-            print(f"🔍 [DEBUG] History: {exchanges} exchange{'s' if exchanges != 1 else ''} stored")
-    
-    def clear_history(self):
-        """Clear conversation history"""
-        self.conversation_history.clear()
-        print("🗑️  Conversation history cleared!")
-    
-    def get_history_preview(self):
-        """Get a preview of conversation history"""
-        if not self.conversation_history:
-            return "No history"
-        exchanges = len(self.conversation_history) // 2
-        return f"{exchanges} exchange{'s' if exchanges != 1 else ''}"
+        print("💡 TIP: Try pressing Ctrl+Shift+G (Ollama) or Ctrl+Shift+H (Gemini)!\n")
 
     def get_clipboard_content(self):
         """Get current clipboard content"""
@@ -139,26 +92,12 @@ class ClipboardAI:
             print(f"📤 Sending to Ollama ({OLLAMA_MODEL})...")
             if VERBOSE:
                 print(f"📝 Input preview: {content[:100]}{'...' if len(content) > 100 else ''}")
-                print(f"🔍 [DEBUG] Input length: {len(content)} characters")
-                if ENABLE_HISTORY and self.conversation_history:
-                    print(f"🔍 [DEBUG] Including {self.get_history_preview()} in context")
-                print()
+                print(f"🔍 [DEBUG] Input length: {len(content)} characters\n")
             
-            # Build the full prompt with history
+            # Build the prompt with system prompt if configured
             full_prompt = ""
-            
-            # Add system prompt if configured
             if SYSTEM_PROMPT:
                 full_prompt += f"System: {SYSTEM_PROMPT}\n\n"
-            
-            # Add conversation history
-            if ENABLE_HISTORY and self.conversation_history:
-                full_prompt += "Previous conversation:\n"
-                for msg in self.conversation_history:
-                    role = "User" if msg["role"] == "user" else "Assistant"
-                    full_prompt += f"{role}: {msg['content']}\n\n"
-            
-            # Add current input
             full_prompt += f"User: {content}\n\nAssistant:"
             
             # Add current input
@@ -223,11 +162,6 @@ class ClipboardAI:
                 if VERBOSE:
                     print(f"📝 Output length: {len(response)} characters")
                     print(f"📝 Output preview: {response[:150]}{'...' if len(response) > 150 else ''}\n")
-                
-                # Add to conversation history
-                self.add_to_history("user", content)
-                self.add_to_history("assistant", response)
-                
                 return response
             else:
                 print("⚠️  Ollama returned empty response")
@@ -268,10 +202,7 @@ class ClipboardAI:
             print(f"📤 Sending to Gemini API ({GEMINI_MODEL})...")
             if VERBOSE:
                 print(f"📝 Input preview: {content[:100]}{'...' if len(content) > 100 else ''}")
-                print(f"🔍 [DEBUG] Input length: {len(content)} characters")
-                if ENABLE_HISTORY and self.conversation_history:
-                    print(f"🔍 [DEBUG] Including {self.get_history_preview()} in context")
-                print()
+                print(f"🔍 [DEBUG] Input length: {len(content)} characters\n")
             
             # System prompt for Gemini
             system_prompt = GEMINI_SYSTEM_PROMPT if GEMINI_SYSTEM_PROMPT else SYSTEM_PROMPT
@@ -282,21 +213,10 @@ class ClipboardAI:
             # Initialize Gemini model
             model = genai.GenerativeModel(GEMINI_MODEL)
             
-            # Build the full prompt with history
+            # Build the prompt with system prompt if configured
             full_prompt = ""
-            
-            # Add system prompt if configured
             if system_prompt:
                 full_prompt += f"System: {system_prompt}\n\n"
-            
-            # Add conversation history
-            if ENABLE_HISTORY and self.conversation_history:
-                full_prompt += "Previous conversation:\n"
-                for msg in self.conversation_history:
-                    role = "User" if msg["role"] == "user" else "Assistant"
-                    full_prompt += f"{role}: {msg['content']}\n\n"
-            
-            # Add current input
             full_prompt += f"User: {content}\n\nAssistant:"
             
             if VERBOSE:
@@ -311,11 +231,6 @@ class ClipboardAI:
                 if VERBOSE:
                     print(f"📝 Output length: {len(result)} characters")
                     print(f"📝 Output preview: {result[:150]}{'...' if len(result) > 150 else ''}\n")
-                
-                # Add to conversation history
-                self.add_to_history("user", content)
-                self.add_to_history("assistant", result)
-                
                 return result
             else:
                 print("⚠️  Gemini returned empty response")
@@ -451,13 +366,9 @@ class ClipboardAI:
             self.processing = False
             print("="*60)
             if use_gemini:
-                print("✅ Ready for next request. Press Ctrl+Shift+H (Gemini) or Ctrl+Shift+G (Ollama)!")
+                print("✅ Ready for next request. Press Ctrl+Shift+H (Gemini) or Ctrl+Shift+G (Ollama)!\n")
             else:
-                print("✅ Ready for next request. Press Ctrl+Shift+G (Ollama) or Ctrl+Shift+H (Gemini)!")
-            
-            if ENABLE_HISTORY:
-                print(f"📚 History: {self.get_history_preview()} | Press Ctrl+Shift+R to reset")
-            print()
+                print("✅ Ready for next request. Press Ctrl+Shift+G (Ollama) or Ctrl+Shift+H (Gemini)!\n")
 
 def main():
     """Main function to set up hotkey listener"""
@@ -490,11 +401,10 @@ def main():
             ctrl_pressed = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys or Key.ctrl in current_keys
             shift_pressed = Key.shift in current_keys or Key.shift_r in current_keys or Key.shift_l in current_keys
             
-            # Check for G, H, Q, R keys using virtual key codes (most reliable)
+            # Check for G, H, Q keys using virtual key codes (most reliable)
             g_pressed = False
             h_pressed = False
             q_pressed = False
-            r_pressed = False
             
             # Only check the key that was just pressed (not all held keys)
             # Method 1: Check virtual key code (most reliable for hotkeys)
@@ -502,7 +412,6 @@ def main():
                 # G key = virtual key 71 (0x47)
                 # H key = virtual key 72 (0x48)
                 # Q key = virtual key 81 (0x51)
-                # R key = virtual key 82 (0x52)
                 if key.vk == 71 or key.vk == 0x47:
                     g_pressed = True
                     if VERBOSE:
@@ -515,13 +424,9 @@ def main():
                     q_pressed = True
                     if VERBOSE:
                         print(f"🔍 [DEBUG] Q key detected via virtual key code!")
-                elif key.vk == 82 or key.vk == 0x52:
-                    r_pressed = True
-                    if VERBOSE:
-                        print(f"🔍 [DEBUG] R key detected via virtual key code!")
             
             # Method 2: Fallback to character check (works on some systems)
-            if not (g_pressed or h_pressed or q_pressed or r_pressed):
+            if not (g_pressed or h_pressed or q_pressed):
                 if hasattr(key, 'char') and key.char:
                     char_lower = key.char.lower()
                     if char_lower == 'g':
@@ -530,11 +435,9 @@ def main():
                         h_pressed = True
                     elif char_lower == 'q':
                         q_pressed = True
-                    elif char_lower == 'r':
-                        r_pressed = True
             
             # Method 3: Fallback to name attribute
-            if not (g_pressed or h_pressed or q_pressed or r_pressed):
+            if not (g_pressed or h_pressed or q_pressed):
                 if hasattr(key, 'name'):
                     if key.name.lower() == 'g':
                         g_pressed = True
@@ -542,11 +445,9 @@ def main():
                         h_pressed = True
                     elif key.name.lower() == 'q':
                         q_pressed = True
-                    elif key.name.lower() == 'r':
-                        r_pressed = True
             
-            if VERBOSE and (g_pressed or h_pressed or q_pressed or r_pressed):
-                print(f"🔍 [DEBUG] Key detected: G={g_pressed}, H={h_pressed}, Q={q_pressed}, R={r_pressed}, Ctrl={ctrl_pressed}, Shift={shift_pressed}")
+            if VERBOSE and (g_pressed or h_pressed or q_pressed):
+                print(f"🔍 [DEBUG] Key detected: G={g_pressed}, H={h_pressed}, Q={q_pressed}, Ctrl={ctrl_pressed}, Shift={shift_pressed}")
             
             # Check for Ctrl+Shift+Q to exit
             if q_pressed and ctrl_pressed and shift_pressed:
@@ -555,11 +456,6 @@ def main():
                 app.should_exit = True
                 import os
                 os._exit(0)
-            
-            # Check for Ctrl+Shift+R to reset history
-            if r_pressed and ctrl_pressed and shift_pressed:
-                print("\n🎯 HOTKEY DETECTED: Ctrl+Shift+R pressed! (Reset history)")
-                app.clear_history()
             
             # Check for Ctrl+Shift+H to process with Gemini
             if h_pressed and ctrl_pressed and shift_pressed:
