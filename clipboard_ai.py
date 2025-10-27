@@ -401,13 +401,20 @@ def main():
             ctrl_pressed = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys or Key.ctrl in current_keys
             shift_pressed = Key.shift in current_keys or Key.shift_r in current_keys or Key.shift_l in current_keys
             
-            # Check for G, H, Q keys using virtual key codes (most reliable)
+            # Check for G key using virtual key code (G = 71 or 0x47)
+            # Check for Q key using virtual key code (Q = 81 or 0x51)
             g_pressed = False
-            h_pressed = False
             q_pressed = False
             
-            # Only check the key that was just pressed (not all held keys)
-            # Method 1: Check virtual key code (most reliable for hotkeys)
+            # Method 1: Check character (works on some systems)
+            if hasattr(key, 'char') and key.char:
+                char_lower = key.char.lower()
+                if char_lower == 'g':
+                    g_pressed = True
+                if char_lower == 'q':
+                    q_pressed = True
+            
+            # Method 2: Check virtual key code (more reliable for hotkeys)
             if hasattr(key, 'vk'):
                 # G key = virtual key 71 (0x47)
                 # H key = virtual key 72 (0x48)
@@ -416,34 +423,50 @@ def main():
                     g_pressed = True
                     if VERBOSE:
                         print(f"🔍 [DEBUG] G key detected via virtual key code!")
-                elif key.vk == 72 or key.vk == 0x48:
+                if key.vk == 72 or key.vk == 0x48:
                     h_pressed = True
                     if VERBOSE:
                         print(f"🔍 [DEBUG] H key detected via virtual key code!")
-                elif key.vk == 81 or key.vk == 0x51:
+                if key.vk == 81 or key.vk == 0x51:
                     q_pressed = True
                     if VERBOSE:
                         print(f"🔍 [DEBUG] Q key detected via virtual key code!")
             
-            # Method 2: Fallback to character check (works on some systems)
-            if not (g_pressed or h_pressed or q_pressed):
-                if hasattr(key, 'char') and key.char:
-                    char_lower = key.char.lower()
+            # Method 3: Check name attribute
+            if hasattr(key, 'name'):
+                if key.name.lower() == 'g':
+                    g_pressed = True
+                if key.name.lower() == 'h':
+                    h_pressed = True
+                if key.name.lower() == 'q':
+                    q_pressed = True
+            
+            # Also scan through all currently held keys
+            for k in current_keys:
+                # Check by virtual key code
+                if hasattr(k, 'vk'):
+                    if k.vk == 71 or k.vk == 0x47:
+                        g_pressed = True
+                    if k.vk == 72 or k.vk == 0x48:
+                        h_pressed = True
+                    if k.vk == 81 or k.vk == 0x51:
+                        q_pressed = True
+                # Check by character
+                if hasattr(k, 'char') and k.char:
+                    char_lower = k.char.lower()
                     if char_lower == 'g':
                         g_pressed = True
-                    elif char_lower == 'h':
+                    if char_lower == 'h':
                         h_pressed = True
-                    elif char_lower == 'q':
+                    if char_lower == 'q':
                         q_pressed = True
-            
-            # Method 3: Fallback to name attribute
-            if not (g_pressed or h_pressed or q_pressed):
-                if hasattr(key, 'name'):
-                    if key.name.lower() == 'g':
+                # Check by name
+                if hasattr(k, 'name'):
+                    if k.name.lower() == 'g':
                         g_pressed = True
-                    elif key.name.lower() == 'h':
+                    if k.name.lower() == 'h':
                         h_pressed = True
-                    elif key.name.lower() == 'q':
+                    if k.name.lower() == 'q':
                         q_pressed = True
             
             if VERBOSE and (g_pressed or h_pressed or q_pressed):

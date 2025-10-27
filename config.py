@@ -42,12 +42,10 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # Gemini model to use
 # Available models:
-# - "gemini-2.5-pro" - Latest and most capable ⭐ RECOMMENDED
-# - "gemini-2.0-flash-thinking-exp-01-21" - Fast with reasoning
-# - "gemini-2.0-flash-exp" - Fast and efficient
-# - "gemini-1.5-pro" - Previous generation
-# - "gemini-1.5-flash" - Previous generation, fast
-GEMINI_MODEL = "gemini-2.5-pro"
+# - "gemini-2.0-flash-exp" - Latest and fastest ⭐ RECOMMENDED
+# - "gemini-1.5-flash" - Fast and efficient
+# - "gemini-1.5-pro" - More capable, slower
+GEMINI_MODEL = "gemini-2.0-flash-exp"
 
 # Optional: System prompt for Gemini (can be different from Ollama)
 # Leave empty to use the same SYSTEM_PROMPT as Ollama
