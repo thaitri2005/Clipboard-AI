@@ -401,9 +401,9 @@ def main():
             ctrl_pressed = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys or Key.ctrl in current_keys
             shift_pressed = Key.shift in current_keys or Key.shift_r in current_keys or Key.shift_l in current_keys
             
-            # Check for G key using virtual key code (G = 71 or 0x47)
-            # Check for Q key using virtual key code (Q = 81 or 0x51)
+            # Check for G, H, Q keys using virtual key code
             g_pressed = False
+            h_pressed = False
             q_pressed = False
             
             # Method 1: Check character (works on some systems)
@@ -411,6 +411,8 @@ def main():
                 char_lower = key.char.lower()
                 if char_lower == 'g':
                     g_pressed = True
+                if char_lower == 'h':
+                    h_pressed = True
                 if char_lower == 'q':
                     q_pressed = True
             
