@@ -24,7 +24,9 @@ MODEL = "phi3:mini"
 # - "Explain this SQL query in simple terms:"
 # - "Optimize the following SQL query:"
 # - "Convert this to SQL:"
-SYSTEM_PROMPT = ""
+SYSTEM_PROMPT = """
+
+"""
 
 # Timeout for Ollama response (seconds)
 # Increase this if you get timeout errors
@@ -51,7 +53,24 @@ GEMINI_MODEL = "gemini-2.5-pro"
 
 # Optional: System prompt for Gemini (can be different from Ollama)
 # Leave empty to use the same SYSTEM_PROMPT as Ollama
-GEMINI_SYSTEM_PROMPT = ""
+GEMINI_SYSTEM_PROMPT = """
+
+"""
+
+# ============================================================
+# CONVERSATION HISTORY SETTINGS
+# ============================================================
+
+# Enable conversation history (maintains context between requests)
+# When enabled, the AI remembers previous messages in the session
+ENABLE_HISTORY = True
+
+# Maximum number of previous exchanges to remember
+# Each exchange = 1 user input + 1 AI response
+# Higher = more context but slower processing and more tokens
+# Set to 0 to disable history
+# Recommended: 3-5 for most use cases, 10+ for complex conversations
+MAX_HISTORY = 5
 
 # ============================================================
 # GENERAL SETTINGS
