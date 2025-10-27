@@ -377,8 +377,13 @@ def main():
     # Set to track current pressed keys
     current_keys = set()
     
+    # Track if we've already triggered a hotkey (to prevent re-triggering while keys are held)
+    hotkey_triggered = False
+    
     def on_press(key):
         """Handle key press"""
+        nonlocal hotkey_triggered
+        
         try:
             current_keys.add(key)
             
@@ -486,14 +491,20 @@ def main():
             if app.processing:
                 return
             
+            # Don't re-trigger if we've already triggered this key combo
+            if hotkey_triggered:
+                return
+            
             # Check for Ctrl+Shift+H to process with Gemini
             if h_pressed and ctrl_pressed and shift_pressed:
                 print("\n🎯 HOTKEY DETECTED: Ctrl+Shift+H pressed! (Gemini mode)")
+                hotkey_triggered = True
                 app.process_clipboard(use_gemini=True)
             
             # Check for Ctrl+Shift+G to process with Ollama
             elif g_pressed and ctrl_pressed and shift_pressed:
                 print("\n🎯 HOTKEY DETECTED: Ctrl+Shift+G pressed! (Ollama mode)")
+                hotkey_triggered = True
                 app.process_clipboard(use_gemini=False)
                     
         except AttributeError:
@@ -506,9 +517,20 @@ def main():
 
     def on_release(key):
         """Handle key release"""
+        nonlocal hotkey_triggered
+        
         try:
             if key in current_keys:
                 current_keys.remove(key)
+            
+            # Reset the hotkey trigger when Ctrl, Shift, G, H, or Q is released
+            if key in (Key.ctrl_l, Key.ctrl_r, Key.ctrl, Key.shift, Key.shift_l, Key.shift_r):
+                hotkey_triggered = False
+            elif hasattr(key, 'vk') and key.vk in (71, 72, 81):  # G, H, Q keys
+                hotkey_triggered = False
+            elif hasattr(key, 'char') and key.char and key.char.lower() in ('g', 'h', 'q'):
+                hotkey_triggered = False
+                
         except KeyError:
             pass
         except Exception as e:
