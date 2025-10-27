@@ -482,13 +482,17 @@ def main():
                 import os
                 os._exit(0)
             
+            # Only process if not already processing
+            if app.processing:
+                return
+            
             # Check for Ctrl+Shift+H to process with Gemini
             if h_pressed and ctrl_pressed and shift_pressed:
                 print("\n🎯 HOTKEY DETECTED: Ctrl+Shift+H pressed! (Gemini mode)")
                 app.process_clipboard(use_gemini=True)
             
             # Check for Ctrl+Shift+G to process with Ollama
-            if g_pressed and ctrl_pressed and shift_pressed:
+            elif g_pressed and ctrl_pressed and shift_pressed:
                 print("\n🎯 HOTKEY DETECTED: Ctrl+Shift+G pressed! (Ollama mode)")
                 app.process_clipboard(use_gemini=False)
                     
