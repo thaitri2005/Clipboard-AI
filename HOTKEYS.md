@@ -16,6 +16,14 @@
 🎯 HOTKEY DETECTED: Ctrl+Shift+G pressed!
 ```
 
+### Ctrl+Shift+H - Process with Gemini (cloud)
+Sends clipboard content to Gemini (requires GEMINI_API_KEY in .env). Result is copied back to clipboard.
+
+**Debug output:**
+```
+🎯 HOTKEY DETECTED: Ctrl+Shift+H pressed!
+```
+
 ### Ctrl+Shift+Q - Exit Application
 **Exit the app cleanly**
 
@@ -49,7 +57,7 @@ But missing the 'G' character, try:
    - OR press them slowly and deliberately
 
 3. **Try right-side keys:**
-   - Right Ctrl + Right Shift + G
+   - Right Ctrl + Right Shift + G/H/Q
 
 4. **Run as Administrator** (most important!)
    - Right-click PowerShell → "Run as Administrator"
@@ -64,7 +72,7 @@ The app shows you exactly what keys it detects:
 🎯 HOTKEY DETECTED: Ctrl+Shift+G pressed!
 ```
 
-If you see `G=True, Ctrl=True, Shift=True` but the hotkey doesn't trigger, there's a bug - let me know!
+If you see `G=True, Ctrl=True, Shift=True` but the hotkey doesn't trigger, please file an issue with a log snippet.
 
 ## Alternative: Disable Verbose Mode
 
@@ -74,3 +82,8 @@ VERBOSE = False
 ```
 
 You'll still see the important messages like "HOTKEY DETECTED" but not all the debug info.
+
+## Notes on behavior
+
+- Hotkeys are layout-independent via virtual key codes.
+- The app is single-trigger per keypress with a small debounce to prevent repeats; if you hold keys, it won’t spam requests.

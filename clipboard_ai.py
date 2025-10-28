@@ -5,10 +5,9 @@ Hotkey: Ctrl+Shift+G
 
 import pyperclip
 import subprocess
-import json
 import re
 from pynput import keyboard
-from pynput.keyboard import Key, KeyCode
+from pynput.keyboard import Key
 import sys
 import time
 
@@ -35,7 +34,8 @@ if GEMINI_API_KEY:
         genai.configure(api_key=GEMINI_API_KEY)
         GEMINI_AVAILABLE = True
     except ImportError:
-        print("⚠️  Warning: google-generativeai not installed. Run: pip install google-generativeai")
+        # Avoid non-ASCII emoji here to prevent UnicodeEncodeError on some Windows consoles
+        print("Warning: google-generativeai not installed. Run: pip install google-generativeai")
         GEMINI_AVAILABLE = False
 else:
     GEMINI_AVAILABLE = False
@@ -45,7 +45,6 @@ class ClipboardAI:
         self.processing = False
         self.hotkey_pressed_count = 0
         self.gemini_pressed_count = 0
-        self.should_exit = False
         print("\n" + "="*60)
         print("🚀 LOCAL AI CLIPBOARD STARTED SUCCESSFULLY!")
         print("="*60)
@@ -57,7 +56,7 @@ class ClipboardAI:
             print(f"⌨️  Ctrl+Shift+H - Process with Gemini (cloud)")
         else:
             print(f"⚠️  Gemini API: Not configured")
-            print(f"💡 Set GEMINI_API_KEY in config.py to enable Ctrl+Shift+H")
+            print(f"💡 Add GEMINI_API_KEY to your .env file to enable Ctrl+Shift+H")
         
         print(f"🛑 Exit: Press Ctrl+Shift+Q OR close this window")
         print(f"🔍 Verbose mode: {VERBOSE}")
@@ -98,9 +97,6 @@ class ClipboardAI:
             full_prompt = ""
             if SYSTEM_PROMPT:
                 full_prompt += f"System: {SYSTEM_PROMPT}\n\n"
-            full_prompt += f"User: {content}\n\nAssistant:"
-            
-            # Add current input
             full_prompt += f"User: {content}\n\nAssistant:"
             
             # Construct the ollama command
@@ -190,13 +186,13 @@ class ClipboardAI:
             if not GEMINI_AVAILABLE:
                 print(f"❌ Gemini API not available!")
                 print(f"💡 Install: pip install google-generativeai")
-                print(f"💡 Set GEMINI_API_KEY in config.py")
+                print(f"💡 Add GEMINI_API_KEY to your .env file")
                 return None
             
             if not GEMINI_API_KEY:
                 print(f"❌ Gemini API key not configured!")
                 print(f"💡 Get your key from: https://makersuite.google.com/app/apikey")
-                print(f"💡 Set GEMINI_API_KEY in config.py")
+                print(f"💡 Add GEMINI_API_KEY to your .env file")
                 return None
             
             print(f"📤 Sending to Gemini API ({GEMINI_MODEL})...")
@@ -237,20 +233,24 @@ class ClipboardAI:
                 return None
                 
         except Exception as e:
-            print(f"❌ Error communicating with Gemini API: {e}")
-            print(f"\n💡 Troubleshooting:")
-            print(f"   1. Check your API key is valid")
-            print(f"   2. Check your internet connection")
-            print(f"   3. Verify API quota: https://makersuite.google.com/")
-            import traceback
-            if VERBOSE:
-                print("\n🔍 [DEBUG] Full traceback:")
-                traceback.print_exc()
+            err_msg = str(e)
+            print(f"❌ Error communicating with Gemini API: {err_msg}")
+            # Gracefully surface rate limit errors without noisy tracebacks
+            if '429' in err_msg or 'ResourceExhausted' in err_msg or 'rate limit' in err_msg.lower():
+                print("⚠️  You have hit the Gemini rate limit. Please wait a bit and try again.")
+            else:
+                print(f"\n💡 Troubleshooting:")
+                print(f"   1. Check your API key is valid")
+                print(f"   2. Check your internet connection")
+                print(f"   3. Verify API quota: https://makersuite.google.com/")
+                if VERBOSE:
+                    import traceback
+                    print("\n🔍 [DEBUG] Full traceback:")
+                    traceback.print_exc()
             return None
 
     def set_clipboard_content(self, content):
         """Set clipboard content with retry logic"""
-        import time
         max_retries = 5
         retry_delay = 0.5  # seconds
         
@@ -317,7 +317,6 @@ class ClipboardAI:
         print(f"🔄 PROCESSING WITH {mode_name} (Request #{request_num})")
         print("="*60)
         
-        import time
         start_time = time.time()
         
         try:
@@ -374,137 +373,101 @@ def main():
     """Main function to set up hotkey listener"""
     app = ClipboardAI()
     
-    # Set to track current pressed keys
-    current_keys = set()
+    # Track modifier states explicitly
+    ctrl_down = False
+    shift_down = False
     
     # Track if we've already triggered a hotkey (to prevent re-triggering while keys are held)
     hotkey_triggered = False
+    last_trigger_time = 0.0
+
+    def detect_letter(k):
+        """Detect if the pressed key is G, H, or Q using multiple strategies."""
+        try:
+            # Character path
+            if hasattr(k, 'char') and k.char:
+                ch = k.char.lower()
+                if ch in ('g', 'h', 'q'):
+                    return ch.upper()
+            # Virtual key path
+            if hasattr(k, 'vk'):
+                if k.vk in (71, 0x47):
+                    if VERBOSE:
+                        print("🔍 [DEBUG] G key detected via virtual key code!")
+                    return 'G'
+                if k.vk in (72, 0x48):
+                    if VERBOSE:
+                        print("🔍 [DEBUG] H key detected via virtual key code!")
+                    return 'H'
+                if k.vk in (81, 0x51):
+                    if VERBOSE:
+                        print("🔍 [DEBUG] Q key detected via virtual key code!")
+                    return 'Q'
+            # Name attribute path
+            if hasattr(k, 'name') and isinstance(k.name, str):
+                nm = k.name.lower()
+                if nm in ('g', 'h', 'q'):
+                    return nm.upper()
+        except Exception:
+            pass
+        return None
     
     def on_press(key):
         """Handle key press"""
-        nonlocal hotkey_triggered
+        nonlocal hotkey_triggered, last_trigger_time, ctrl_down, shift_down
         
         try:
-            current_keys.add(key)
-            
-            # Debug: Show what keys are pressed if in verbose mode
+            # Update modifier states
+            if key in (Key.ctrl, Key.ctrl_l, Key.ctrl_r):
+                ctrl_down = True
+            if key in (Key.shift, Key.shift_l, Key.shift_r):
+                shift_down = True
+
+            # Debug: Show modifiers when they change or a key is pressed
             if VERBOSE:
-                key_names = []
-                for k in current_keys:
-                    if hasattr(k, 'char') and k.char:
-                        key_names.append(f"'{k.char}'")
-                    elif hasattr(k, 'name'):
-                        key_names.append(k.name)
-                    elif hasattr(k, 'vk'):  # Virtual key code
-                        key_names.append(f"vk_{k.vk}")
-                    else:
-                        key_names.append(str(k).replace('Key.', ''))
-                if len(key_names) > 0:
-                    print(f"🔍 [DEBUG] Keys currently held: {' + '.join(key_names)}")
-            
-            # Check for Ctrl+Shift modifiers
-            ctrl_pressed = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys or Key.ctrl in current_keys
-            shift_pressed = Key.shift in current_keys or Key.shift_r in current_keys or Key.shift_l in current_keys
-            
-            # Check for G, H, Q keys using virtual key code
-            g_pressed = False
-            h_pressed = False
-            q_pressed = False
-            
-            # Method 1: Check character (works on some systems)
-            if hasattr(key, 'char') and key.char:
-                char_lower = key.char.lower()
-                if char_lower == 'g':
-                    g_pressed = True
-                if char_lower == 'h':
-                    h_pressed = True
-                if char_lower == 'q':
-                    q_pressed = True
-            
-            # Method 2: Check virtual key code (more reliable for hotkeys)
-            if hasattr(key, 'vk'):
-                # G key = virtual key 71 (0x47)
-                # H key = virtual key 72 (0x48)
-                # Q key = virtual key 81 (0x51)
-                if key.vk == 71 or key.vk == 0x47:
-                    g_pressed = True
-                    if VERBOSE:
-                        print(f"🔍 [DEBUG] G key detected via virtual key code!")
-                if key.vk == 72 or key.vk == 0x48:
-                    h_pressed = True
-                    if VERBOSE:
-                        print(f"🔍 [DEBUG] H key detected via virtual key code!")
-                if key.vk == 81 or key.vk == 0x51:
-                    q_pressed = True
-                    if VERBOSE:
-                        print(f"🔍 [DEBUG] Q key detected via virtual key code!")
-            
-            # Method 3: Check name attribute
-            if hasattr(key, 'name'):
-                if key.name.lower() == 'g':
-                    g_pressed = True
-                if key.name.lower() == 'h':
-                    h_pressed = True
-                if key.name.lower() == 'q':
-                    q_pressed = True
-            
-            # Also scan through all currently held keys
-            for k in current_keys:
-                # Check by virtual key code
-                if hasattr(k, 'vk'):
-                    if k.vk == 71 or k.vk == 0x47:
-                        g_pressed = True
-                    if k.vk == 72 or k.vk == 0x48:
-                        h_pressed = True
-                    if k.vk == 81 or k.vk == 0x51:
-                        q_pressed = True
-                # Check by character
-                if hasattr(k, 'char') and k.char:
-                    char_lower = k.char.lower()
-                    if char_lower == 'g':
-                        g_pressed = True
-                    if char_lower == 'h':
-                        h_pressed = True
-                    if char_lower == 'q':
-                        q_pressed = True
-                # Check by name
-                if hasattr(k, 'name'):
-                    if k.name.lower() == 'g':
-                        g_pressed = True
-                    if k.name.lower() == 'h':
-                        h_pressed = True
-                    if k.name.lower() == 'q':
-                        q_pressed = True
-            
-            if VERBOSE and (g_pressed or h_pressed or q_pressed):
-                print(f"🔍 [DEBUG] Key detected: G={g_pressed}, H={h_pressed}, Q={q_pressed}, Ctrl={ctrl_pressed}, Shift={shift_pressed}")
-            
-            # Check for Ctrl+Shift+Q to exit
-            if q_pressed and ctrl_pressed and shift_pressed:
-                print("\n👋 Exit hotkey (Ctrl+Shift+Q) detected!")
-                print("Shutting down...")
-                app.should_exit = True
-                import os
-                os._exit(0)
+                mods = []
+                if ctrl_down:
+                    mods.append('CTRL')
+                if shift_down:
+                    mods.append('SHIFT')
+                if mods:
+                    print(f"🔍 [DEBUG] Keys currently held: {' + '.join(mods)}")
+
+            # Detect if this key press is G/H/Q
+            letter = detect_letter(key)
             
             # Only process if not already processing
             if app.processing:
                 return
             
+            # Debounce very quick repeats
+            now = time.time()
+            if now - last_trigger_time < 0.2:
+                return
+            
             # Don't re-trigger if we've already triggered this key combo
             if hotkey_triggered:
                 return
+
+            # Check for Ctrl+Shift+Q to exit
+            if letter == 'Q' and ctrl_down and shift_down:
+                print("\n👋 Exit hotkey (Ctrl+Shift+Q) detected!")
+                print("Shutting down...")
+                import os
+                os._exit(0)
             
             # Check for Ctrl+Shift+H to process with Gemini
-            if h_pressed and ctrl_pressed and shift_pressed:
+            if letter == 'H' and ctrl_down and shift_down:
                 print("\n🎯 HOTKEY DETECTED: Ctrl+Shift+H pressed! (Gemini mode)")
                 hotkey_triggered = True
+                last_trigger_time = now
                 app.process_clipboard(use_gemini=True)
             
             # Check for Ctrl+Shift+G to process with Ollama
-            elif g_pressed and ctrl_pressed and shift_pressed:
+            elif letter == 'G' and ctrl_down and shift_down:
                 print("\n🎯 HOTKEY DETECTED: Ctrl+Shift+G pressed! (Ollama mode)")
                 hotkey_triggered = True
+                last_trigger_time = now
                 app.process_clipboard(use_gemini=False)
                     
         except AttributeError:
@@ -517,18 +480,19 @@ def main():
 
     def on_release(key):
         """Handle key release"""
-        nonlocal hotkey_triggered
+        nonlocal hotkey_triggered, ctrl_down, shift_down
         
         try:
-            if key in current_keys:
-                current_keys.remove(key)
-            
-            # Reset the hotkey trigger when Ctrl, Shift, G, H, or Q is released
-            if key in (Key.ctrl_l, Key.ctrl_r, Key.ctrl, Key.shift, Key.shift_l, Key.shift_r):
+            # Update modifier states
+            if key in (Key.ctrl, Key.ctrl_l, Key.ctrl_r):
+                ctrl_down = False
                 hotkey_triggered = False
-            elif hasattr(key, 'vk') and key.vk in (71, 72, 81):  # G, H, Q keys
+            if key in (Key.shift, Key.shift_l, Key.shift_r):
+                shift_down = False
                 hotkey_triggered = False
-            elif hasattr(key, 'char') and key.char and key.char.lower() in ('g', 'h', 'q'):
+            # Reset on releasing the hotkey letters as well
+            letter = detect_letter(key)
+            if letter in ('G','H','Q'):
                 hotkey_triggered = False
                 
         except KeyError:

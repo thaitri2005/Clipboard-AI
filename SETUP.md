@@ -1,11 +1,11 @@
-# 🚀 Automated Setup for Local AI Clipboard (SQL-Focused)
+# 🚀 Automated Setup for Local AI Clipboard
 
 This script will install everything you need automatically!
 
 ## What This Will Do:
 
 1. ✅ Install Ollama CLI
-2. ✅ Pull a lightweight SQL-capable model (phi3:mini - only 2.3GB)
+2. ✅ Pull a lightweight model (phi3:mini - only 2.3GB)
 3. ✅ Install Python dependencies
 4. ✅ Test the setup
 
@@ -33,16 +33,15 @@ winget install Ollama.Ollama
 # https://ollama.com/download/OllamaSetup.exe
 ```
 
-### Step 2: Pull Lightweight SQL Model
+### Step 2: Pull Lightweight Model
 
 ```powershell
-# Recommended: phi3:mini (2.3GB, fast, good for SQL)
+# Recommended: phi3:mini (2.3GB, fast)
 ollama pull phi3:mini
 
 # Alternative options:
 # ollama pull qwen2.5-coder:1.5b    # Even smaller (1GB)
 # ollama pull codellama:7b          # Larger but better (3.8GB)
-# ollama pull sqlcoder:7b           # SQL specialist (7GB)
 ```
 
 ### Step 3: Install Python Dependencies
@@ -51,21 +50,34 @@ ollama pull phi3:mini
 pip install -r requirements.txt
 ```
 
+Optional (Gemini cloud mode):
+
+```powershell
+Copy-Item .env.example .env
+# Edit .env and set GEMINI_API_KEY=AIza...your-key
+```
+
 ### Step 4: Test
 
 ```powershell
 # Test Ollama
 ollama run phi3:mini
-# Type: "Write a SQL query to select all users" then /bye
+# Type: "Write a query to select all users" then /bye
 
 # Run the app
 python clipboard_ai.py
 ```
 
+Use hotkeys while the app runs:
+
+- Ctrl+Shift+G → Ollama (local)
+- Ctrl+Shift+H → Gemini (cloud)
+- Ctrl+Shift+Q → exit
+
 ## 🎯 Ready to Use!
 
 Once setup is complete:
 1. Run: `.\start.bat`
-2. Copy SQL or text (Ctrl+C)
+2. Copy text (Ctrl+C)
 3. Press Ctrl+Shift+G
 4. Paste AI response (Ctrl+V)

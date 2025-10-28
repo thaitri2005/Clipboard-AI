@@ -1,124 +1,102 @@
-# Local AI Clipboard
+# Local Clipboard AI
 
-Send clipboard content to your local Ollama instance OR Google Gemini API with hotkeys and get AI-processed results back!
+Send clipboard content to a local Ollama model or Google Gemini with a hotkey, and get the result copied back to your clipboard. Copy → Process → Paste.
 
-**Optimized for SQL tasks with a lightweight model!**
+## Features
 
-## 🎯 Features
+- Dual modes
+  - Ctrl+Shift+G → Ollama (local, private, free)
+  - Ctrl+Shift+H → Gemini (cloud, fast; optional with .env)
+- Result copied back to clipboard automatically
+- Layout-independent hotkeys (virtual key codes)
+- Robust clipboard retries and clean output (ANSI stripped)
+- Verbose logging for easy troubleshooting
 
-- **Dual AI Modes**: 
-  - **Ctrl+Shift+G** → Ollama (local, private, free)
-  - **Ctrl+Shift+H** → Gemini API (cloud, fast, free tier)
-- **Hotkey Activation**: Process clipboard with a simple key combo
-- **Local AI Processing**: Uses your local Ollama CLI (privacy first!)
-- **Cloud AI Option**: Optional Gemini API for faster responses
-- **Lightweight**: Configured with phi3:mini (~2.3GB, fast, SQL-capable)
-- **Seamless Workflow**: Copy → Process → Paste
-- **SQL Optimized**: Great for SQL queries, explanations, and optimization
+## Quick start (Windows PowerShell)
 
-## 🚀 Quick Start (Automated)
-
-Run the automated setup script:
+Automated setup:
 
 ```powershell
-.\setup.ps1
+./setup.ps1
 ```
 
-That's it! The script will:
-1. Install Ollama CLI
-2. Download phi3:mini model (~2.3GB)
-3. Install Python dependencies
-4. Test everything
+Manual essentials:
 
-## � Manual Installation
+```powershell
+# In repo root
+pip install -r requirements.txt
+ollama pull phi3:mini
+python .\clipboard_ai.py
+```
 
-If you prefer manual setup, see [INSTALL.md](INSTALL.md) or [SETUP.md](SETUP.md)
+Optional Gemini (.env):
 
-## ⚙️ Configuration
+```powershell
+Copy-Item .env.example .env
+# Edit .env and set: GEMINI_API_KEY=AIza...your-key
+```
 
-Edit `config.py` to customize:
+## Start the app
+
+You can launch it either way:
+
+- Double-click `start.bat` (recommended for everyday use)
+  - Creates/uses a local venv (if present), installs deps if needed, ensures `.env`, and starts the app
+- From a terminal (inside the repo):
+
+  ```powershell
+  python .\clipboard_ai.py
+  ```
+
+## Usage
+
+1) Copy any text (Ctrl+C)
+2) Press a hotkey while the app is running
+   - Ctrl+Shift+G → process with Ollama (local)
+   - Ctrl+Shift+H → process with Gemini (cloud)
+3) Paste the result (Ctrl+V)
+4) Exit anytime with Ctrl+Shift+Q
+
+## Configuration
+
+Edit `config.py`:
 
 ```python
-MODEL = "phi3:mini"  # Lightweight, SQL-capable model
-SYSTEM_PROMPT = ""   # Add custom instructions like "Explain this SQL:"
-TIMEOUT = 120        # Response timeout in seconds
-VERBOSE = True       # Show detailed output
+MODEL = "phi3:mini"      # default Ollama model
+TIMEOUT = 300             # seconds
+VERBOSE = True            # debug output
+SYSTEM_PROMPT = ""        # optional
+
+GEMINI_MODEL = "gemini-2.5-pro"   # cloud
+# GEMINI_API_KEY comes from .env
 ```
 
-### Recommended Models for SQL:
-- **phi3:mini** (2.3GB) - ⭐ Default, fast, lightweight, good SQL
-- **qwen2.5-coder:1.5b** (1GB) - Smallest, very fast
-- **codellama:7b** (3.8GB) - Better for complex SQL
-- **sqlcoder:7b** (7GB) - SQL specialist (requires more resources)
+Notes:
+- API key must be in `.env` as `GEMINI_API_KEY=...` (the file is gitignored)
+- We removed conversation history to keep it fast and lightweight
 
-## 🎮 Usage
+## Recommended Ollama models:
 
-1. Start the application:
+- phi3:mini (default) — small, fast
+- qwen2.5-coder:1.5b — very small and quick
+- codellama:7b — bigger, stronger
+
+Pull another model:
+
 ```powershell
-python clipboard_ai.py
+ollama pull qwen2.5-coder:1.5b
 ```
 
-2. Copy any text to your clipboard (Ctrl+C)
+## Troubleshooting
 
-3. Choose your AI:
-   - Press `Ctrl+Shift+G` to process with **Ollama** (local)
-   - Press `Ctrl+Shift+H` to process with **Gemini** (cloud) 
+- “Ollama not found”: restart PowerShell; check `ollama --version`; install from https://ollama.ai/download
+- “Model not found”: `ollama pull phi3:mini`; check `ollama list`
+- Gemini 429 (rate limit): wait and retry; keep requests modest
+- Hotkeys: run app; press and hold Ctrl+Shift, then tap G/H; layout independent
+- Clipboard conflicts: other clipboard managers can lock access; we retry automatically
 
-4. Wait for processing (you'll see progress in the terminal)
+More tips in `TROUBLESHOOTING.md` and hotkey details in `HOTKEYS.md`.
 
-5. Paste the AI response (Ctrl+V)
+## License
 
-## 💡 Example Use Cases
-
-### SQL-Focused Tasks:
-- **Query Explanation**: Copy SQL → Process → Get plain English explanation
-- **Query Optimization**: Copy slow query → Process → Get optimized version
-- **Query Generation**: Copy requirements → Process → Get SQL query
-- **Error Debugging**: Copy error message → Process → Get solution
-- **Schema Design**: Copy requirements → Process → Get table schemas
-
-### General Tasks:
-- **Code Explanation**: Copy code → Process → Get explanation
-- **Text Enhancement**: Copy draft → Process → Get improved version
-- **Summarization**: Copy article → Process → Get summary
-
-## 🔧 Customization
-
-You can customize the behavior by:
-
-1. **Changing the model**: Edit `OLLAMA_MODEL` in `clipboard_ai.py`
-2. **Adding prompts**: Modify the `send_to_ollama` function to prepend instructions
-3. **Changing hotkey**: Modify the key detection in the `on_press` function
-
-## 🐛 Troubleshooting
-
-### "Ollama not found"
-- Make sure Ollama is installed and in your PATH
-- Try running `ollama --version` in terminal
-- Restart your terminal after installing Ollama
-
-### "Model not found"
-- Pull the model: `ollama pull llama3.2`
-- Check available models: `ollama list`
-
-### Clipboard not working
-- Make sure you have clipboard permissions
-- Try running as administrator
-
-### Hotkey not detected
-- Make sure the application is running in the terminal
-- Try running with administrator privileges
-
-## 📝 Notes
-
-- The application runs in the foreground and shows progress in the terminal
-- Processing time depends on your hardware and the model size
-- Larger models provide better results but take longer to process
-
-## 🛑 Stopping the Application
-
-Press `Ctrl+C` in the terminal window to stop the application.
-
-## 📄 License
-
-MIT License - Feel free to modify and use as needed!
+MIT

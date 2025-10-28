@@ -1,101 +1,79 @@
-# 🚀 Quick Installation Guide
+# 🚀 Installation Guide (Windows)
 
-Follow these steps to get Local AI Clipboard up and running:
+Follow these steps to get Local Clipboard AI running.
 
-## Step 1: Install Ollama
+## 1) Install Ollama
 
-1. Download Ollama for Windows: https://ollama.ai/download/windows
-2. Run the installer
-3. Open PowerShell or Command Prompt and verify:
-   ```powershell
-   ollama --version
-   ```
+Download and install:
 
-## Step 2: Pull an AI Model
+<https://ollama.ai/download/windows>
 
-Choose and download a model (llama3.2 is recommended):
+Verify:
 
 ```powershell
-# Recommended - Fast and capable (~2GB)
-ollama pull llama3.2
-
-# OR for smaller/faster (~700MB)
-ollama pull llama3.2:1b
-
-# OR other options
-ollama pull mistral
-ollama pull phi3
+ollama --version
 ```
 
-Test the model works:
+## 2) Pull a model (default: phi3:mini)
+
 ```powershell
-ollama run llama3.2
+ollama pull phi3:mini
 ```
-Type "Hello!" and press Enter. If you get a response, it's working! Type `/bye` to exit.
 
-## Step 3: Install Python Dependencies
+Alternatives:
 
-In the project directory, run:
+```powershell
+ollama pull qwen2.5-coder:1.5b
+ollama pull codellama:7b
+```
+
+## 3) Install Python deps
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-This will install:
-- `pyperclip` - For clipboard access
-- `pynput` - For global hotkey detection
+This includes:
 
-## Step 4: Run the Application
+- pyperclip (clipboard)
+- pynput (hotkeys)
+- python-dotenv (env loading)
+- google-generativeai (optional; for Gemini)
 
-### Option A: Use the quick start script
+## 4) Optional: Configure Gemini
+
 ```powershell
-.\start.bat
+Copy-Item .env.example .env
+# Edit .env and set GEMINI_API_KEY=AIza...your-key
 ```
 
-### Option B: Run directly
+## 5) Run
+
 ```powershell
-python clipboard_ai.py
+python .\clipboard_ai.py
 ```
 
-## Step 5: Test It!
+Use:
 
-1. Copy some text (Ctrl+C): "What is Python?"
-2. Press **Ctrl+Shift+G**
-3. Wait for the AI to process
-4. Paste the result (Ctrl+V)
+- Ctrl+Shift+G → Ollama (local)
+- Ctrl+Shift+H → Gemini (cloud)
+- Ctrl+Shift+Q → exit
 
-## 🎯 Customization
+## Customize
 
-Edit `config.py` to:
-- Change the AI model
-- Add a system prompt (e.g., "Improve this text:")
-- Adjust timeout settings
+Edit `config.py`:
 
-Example config:
 ```python
-MODEL = "llama3.2"
-SYSTEM_PROMPT = "You are a helpful writing assistant. Improve and enhance the following text:"
-TIMEOUT = 120
+MODEL = "phi3:mini"
+SYSTEM_PROMPT = ""  # optional
+TIMEOUT = 300
 VERBOSE = True
+GEMINI_MODEL = "gemini-2.5-pro"
 ```
 
-## ❓ Troubleshooting
+## Troubleshooting
 
-### Ollama not found
-- Make sure Ollama is installed
-- Restart PowerShell/Command Prompt after installation
-- Check PATH includes Ollama
-
-### Hotkey not working
-- Make sure the script is running in the terminal
-- Try running PowerShell/Command Prompt as Administrator
-- Check no other app is using Ctrl+Shift+G
-
-### Slow responses
-- Try a smaller model: `ollama pull llama3.2:1b`
-- Check your CPU/GPU resources
-- Increase TIMEOUT in config.py
-
-## 🎉 You're All Set!
-
-Keep the terminal window open and press Ctrl+Shift+G whenever you want to process clipboard content with AI!
+- “Ollama not found”: restart terminal, check `ollama --version`, reinstall
+- “Model not found”: `ollama pull phi3:mini`
+- Gemini 429: you hit rate limits—wait a bit and retry
+- Hotkeys: hold Ctrl+Shift, then press G/H while app is running

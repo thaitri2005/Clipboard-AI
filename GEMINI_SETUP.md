@@ -77,24 +77,19 @@ Edit `GEMINI_MODEL` in `config.py`:
 
 ```python
 # Fastest, latest (recommended)
+GEMINI_MODEL = "gemini-2.5-flash"
+
+# Stronger, good for complex tasks
+GEMINI_MODEL = "gemini-2.5-pro"
+
+# Legacy model
 GEMINI_MODEL = "gemini-2.0-flash-exp"
-
-# Fast and efficient
-GEMINI_MODEL = "gemini-1.5-flash"
-
-# More capable, slower
-GEMINI_MODEL = "gemini-1.5-pro"
 ```
 
 ## Cost & Limits
 
 **Free Tier:**
-- 60 requests per minute
-- 1,500 requests per day
-- 1 million tokens per month
-
 More than enough for typical use!
-
 Check your usage: https://makersuite.google.com/
 
 ## When to Use Which?
@@ -102,7 +97,6 @@ Check your usage: https://makersuite.google.com/
 **Use Ollama (Ctrl+Shift+G) when:**
 - You want privacy
 - You have no internet
-- You're doing many requests
 - You don't mind waiting (first time)
 
 **Use Gemini (Ctrl+Shift+H) when:**

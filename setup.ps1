@@ -1,5 +1,5 @@
 # Automated Setup Script for Local AI Clipboard
-# This will install Ollama CLI and set up a lightweight SQL-capable model
+# This will install Ollama CLI and set up a lightweight model
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host " Local AI Clipboard - Automated Setup" -ForegroundColor Cyan
@@ -62,8 +62,8 @@ try {
 }
 Write-Host ""
 
-# Step 3: Pull lightweight SQL model
-Write-Host "Step 3: Setting up AI model (phi3:mini - lightweight and SQL-capable)..." -ForegroundColor Green
+# Step 3: Pull lightweight model
+Write-Host "Step 3: Setting up AI model (phi3:mini - lightweight)..." -ForegroundColor Green
 Write-Host "   This will download approximately 2.3GB. Please wait..." -ForegroundColor Cyan
 
 $modelName = "phi3:mini"
@@ -121,13 +121,13 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next Steps:" -ForegroundColor Cyan
 Write-Host "   1. Run:  .\start.bat" -ForegroundColor White
-Write-Host "   2. Copy SQL or text (Ctrl+C)" -ForegroundColor White
+Write-Host "   2. Copy text (Ctrl+C)" -ForegroundColor White
 Write-Host "   3. Press: Ctrl+Shift+G" -ForegroundColor White
 Write-Host "   4. Paste AI response (Ctrl+V)" -ForegroundColor White
 Write-Host ""
 Write-Host "Tips:" -ForegroundColor Cyan
 Write-Host "   - Edit config.py to change the AI model" -ForegroundColor White
-Write-Host "   - Add SYSTEM_PROMPT for SQL-specific tasks" -ForegroundColor White
+Write-Host "   - Add SYSTEM_PROMPT for specific tasks" -ForegroundColor White
 Write-Host "   - Model size: approximately 2.3GB, fast responses" -ForegroundColor White
 Write-Host ""
 Write-Host "Press any key to start the application..."
