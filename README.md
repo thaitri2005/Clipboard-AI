@@ -1,4 +1,4 @@
-# Local Clipboard AI
+# Clipboard AI
 
 Send clipboard content to a local Ollama model or Google Gemini with a hotkey, and get the result copied back to your clipboard. Copy → Process → Paste.
 
