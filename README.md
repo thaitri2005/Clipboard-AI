@@ -99,4 +99,4 @@ More tips in `TROUBLESHOOTING.md` and hotkey details in `HOTKEYS.md`.
 
 ## License
 
-MIT
+None for now
